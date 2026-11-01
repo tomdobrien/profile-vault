@@ -143,8 +143,10 @@ def require_frontend_origin(request: Request) -> None:
     if request.headers.get("origin") not in settings.allowed_frontend_origins:
         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Request origin is not allowed")
 
-def check_auth_rate_limit(request: Request) -> None:
+def check_auth_rate_limit(request: Request, *, contact: bool = False) -> None:
     key = request.client.host if request.client else "unknown"
+    if contact:
+        key = "contact/" + key
     now = time.monotonic()
     # Single-process protection; a trusted proxy may group visitors under one address.
     with _auth_lock:
@@ -152,10 +154,10 @@ def check_auth_rate_limit(request: Request) -> None:
             if not history or now - history[-1] >= AUTH_WINDOW_SECONDS:
                 del _auth_attempts[source]
         if key not in _auth_attempts and len(_auth_attempts) >= 4096:
-            raise HTTPException(status_code=429, detail="Too many sign-in attempts. Try again later.", headers={"Retry-After": str(AUTH_WINDOW_SECONDS)})
+            raise HTTPException(status_code=429, detail="Too many requests. Try again later.", headers={"Retry-After": str(AUTH_WINDOW_SECONDS)})
         attempts = _auth_attempts[key]
         while attempts and now - attempts[0] >= AUTH_WINDOW_SECONDS:
             attempts.popleft()
         if len(attempts) >= AUTH_MAX_ATTEMPTS:
-            raise HTTPException(status_code=429, detail="Too many sign-in attempts. Try again later.", headers={"Retry-After": str(AUTH_WINDOW_SECONDS)})
+            raise HTTPException(status_code=429, detail="Too many requests. Try again later.", headers={"Retry-After": str(AUTH_WINDOW_SECONDS)})
         attempts.append(now)

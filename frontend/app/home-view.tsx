@@ -7,12 +7,13 @@ import SiteLink from "./site-link";
 const basePath = process.env.NEXT_PUBLIC_BASE_PATH ?? "";
 
 export default function HomeView() {
-  const { email, status } = usePublicProfile();
+  const { status } = usePublicProfile();
   return <SiteChrome active="home">
     <main className="home-page">
-      <section className="project-feature" aria-labelledby="home-title">
+      <h1 className="studio-title" id="home-title">Projects <span>&amp; tools</span></h1>
+      <section className="project-feature" aria-labelledby="feature-title">
         <div className="project-copy">
-          <h1 id="home-title">Projects <em>&amp; tools</em></h1>
+          <h2 id="feature-title">Guild Bounty</h2>
           <p>I built Guild Bounty to try out a player-run quest board. Pick a challenge, back it with demo tokens, or submit proof of your run.</p>
           <SiteLink className="primary-button" href={`${basePath}/guild-bounty/`}>Explore Guild Bounty</SiteLink>
         </div>
@@ -30,7 +31,6 @@ export default function HomeView() {
           <h3>File backup</h3><p>Private storage for invited accounts.</p><span className="row-end">{status === "offline" ? "Server offline" : "Open backup"} <Arrow /></span>
         </SiteLink>
       </section>
-      {email && <div className="contact-endnote"><h2>Get in touch</h2><a href={`mailto:${email}`}>{email}</a></div>}
     </main>
   </SiteChrome>;
 }

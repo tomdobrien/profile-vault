@@ -389,7 +389,8 @@ def test_published_resume_only_exposes_public_contact(backups, tmp_path, monkeyp
         assert response.headers["cache-control"] == "no-store"
         assert response.json()["displayName"] == "Test"
         assert response.json()["contactPhone"] is None
-    assert client.get("/api/contact").json() == {"contactEmail": "contact@example.com"}
+        assert response.json()["contactEmail"] is None
+    assert client.get("/api/contact").json() == {"contactEmail": None}
     owner_headers = {**tokens["owner"], "Origin": "https://site.example"}
     private = {"displayName": "Private Surname", "contactPhone": "555-0199"}
     assert client.put("/api/profile", headers=owner_headers, json=private).status_code == 200
@@ -494,3 +495,20 @@ def test_cached_video_tickets_keep_variants_stable_and_permissions_enforced(back
     cache.unlink()
     assert client.get("/api/files/video", params={"ticket": ticket}).status_code == 410
     assert client.get("/api/files/video", params={"ticket": original_ticket}).content == movie.read_bytes()
+
+
+def test_contact_inbox_delivery_and_owner_notification(backups):
+    client, _, _, tokens, _ = backups
+    inbox = "/api/admin/contact/messages"
+    origin = {"Origin": "https://site.example"}
+    sent = {"sender": "Visitor", "body": "Hello"}
+    assert client.post("/api/contact/messages", json=sent).status_code == 403
+    assert client.post("/api/contact/messages", json=sent, headers=origin).status_code == 201
+    assert client.get(inbox).status_code == 401
+    assert client.get(inbox, headers=tokens["alice"]).status_code == 401
+    rows = client.get(inbox, headers=tokens["owner"]).json()
+    assert len(rows) == 1 and rows[0]["body"] == "Hello"
+    mark = f"{inbox}/{rows[0]['id']}/read"
+    assert client.put(mark, headers={**origin, **tokens["alice"]}).status_code == 401
+    assert client.put(mark, headers={**origin, **tokens["owner"]}).status_code == 200
+    assert client.get(inbox, headers=tokens["owner"]).json() == []

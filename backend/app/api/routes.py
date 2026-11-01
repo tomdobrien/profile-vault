@@ -32,6 +32,7 @@ from app.api.admin_auth import (
 from app.api.upload_auth import hash_password, password_needs_rehash, verify_password
 from app.config import settings
 from app.database import get_db
+from app.models.contact_message import ContactMessage
 from app.models.upload_user import UploadInvitation, UploadUser, utcnow
 from app.permissions import PERMISSIONS
 from app.repositories.profile_repository import ProfileRepository
@@ -611,13 +612,15 @@ def published_resume(response: Response) -> ProfileResponse:
         return ProfileResponse()
     profile = ProfileResponse.model_validate_json(data)
     profile.display_name = next(iter((profile.display_name or "").split()), None)
+    profile.contact_email = None
     profile.contact_phone = None
     return profile
 
 
 @router.get("/contact", tags=["profile"])
 def public_contact(response: Response) -> dict[str, str | None]:
-    return {"contactEmail": published_resume(response).contact_email}
+    response.headers["Cache-Control"] = "no-store"
+    return {"contactEmail": None}
 
 
 @router.get("/profile", response_model=ProfileResponse, response_model_by_alias=True, tags=["profile"])
@@ -635,3 +638,38 @@ def update_profile(
     _origin: None = Depends(require_frontend_origin),
 ) -> ProfileResponse:
     return ProfileService(ProfileRepository(db)).update_profile(data)
+
+
+class ContactSubmission(BaseModel):
+    sender: str = Field(default="", max_length=120)
+    body: str = Field(min_length=1, max_length=4000)
+
+
+@router.post("/contact/messages", status_code=201)
+def send_contact_message(data: ContactSubmission, request: Request, db: Session = Depends(get_db),
+                         _origin: None = Depends(require_frontend_origin)):
+    if not data.body.strip():
+        raise HTTPException(status_code=422, detail="Enter a message.")
+    check_auth_rate_limit(request, contact=True)
+    db.add(ContactMessage(sender=data.sender.strip(), body=data.body.strip()))
+    db.commit()
+    return {"sent": True}
+
+
+@router.get("/admin/contact/messages")
+def unread_messages(response: Response, db: Session = Depends(get_db), _admin: None = Depends(require_admin)):
+    response.headers["Cache-Control"] = "no-store"
+    rows = db.scalars(select(ContactMessage).where(ContactMessage.is_read.is_(False))
+                      .order_by(ContactMessage.id).limit(50))
+    return [{"id": row.id, "sender": row.sender, "body": row.body} for row in rows]
+
+
+@router.put("/admin/contact/messages/{message_id}/read")
+def read_contact_message(message_id: int, db: Session = Depends(get_db), _admin: None = Depends(require_admin),
+                         _origin: None = Depends(require_frontend_origin)):
+    message = db.get(ContactMessage, message_id)
+    if message is None:
+        raise HTTPException(status_code=404, detail="Message not found")
+    message.is_read = True
+    db.commit()
+    return {"read": True}

@@ -22,7 +22,6 @@ export default function ResumeView() {
       {profile.introduction && <p className="resume-page-summary">{profile.introduction}</p>}
       <div className="resume-contact">
         {profile.location && <span>{profile.location}</span>}
-        {profile.contactEmail && <a href={`mailto:${profile.contactEmail}`}>{profile.contactEmail}</a>}
         <span>Phone <span className="redaction" role="img" aria-label="Phone number withheld">••• ••• ••••</span></span>
       </div>
     </div>

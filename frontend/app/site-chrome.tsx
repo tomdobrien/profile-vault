@@ -12,6 +12,7 @@ const destinations = [
   { id: "home", label: "Home", href: `${siteBasePath}/` },
   { id: "resume", label: "Résumé", href: `${siteBasePath}/resume/` },
   { id: "upload", label: "File backup", href: `${siteBasePath}/upload/` },
+  { id: "contact", label: "Contact", href: `${siteBasePath}/contact/` },
 ] as const;
 
 type ActiveSection = typeof destinations[number]["id"];

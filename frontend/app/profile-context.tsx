@@ -7,13 +7,12 @@ import type { Profile, SiteSession } from "@/lib/types";
 
 type PublicProfileState = {
   profile: Profile | null;
-  email: string | null;
   status: "checking" | "online" | "offline";
   session: SiteSession | null;
   publicPermissions: string[];
 };
 const initial: PublicProfileState = {
-  profile: null, email: null, status: "checking", session: null, publicPermissions: [],
+  profile: null, status: "checking", session: null, publicPermissions: [],
 };
 
 const PublicProfileContext = createContext({ ...initial, can: (_permission: string): boolean => false });
@@ -40,7 +39,7 @@ export function PublicProfileProvider({ children }: Readonly<{ children: React.R
     function clearPersonalData() {
       current?.abort();
       current = null;
-      setState(previous => ({ ...previous, profile: null, email: null }));
+      setState(previous => ({ ...previous, profile: null }));
     }
     function networkOffline() {
       clearPersonalData();
@@ -53,13 +52,12 @@ export function PublicProfileProvider({ children }: Readonly<{ children: React.R
       current = request;
       const timeout = window.setTimeout(() => request.abort(), 5000);
       try {
-        const [visitor, session, profile, contact] = await Promise.all([
+        const [visitor, session, profile] = await Promise.all([
           api.getPublicAccess(request.signal), api.getSiteSession(request.signal),
           route === "/resume" ? api.getPublishedResume(request.signal).catch(() => null) : null,
-          route === "/" || route === "/terms" ? api.getPublicContact(request.signal).catch(() => null) : null,
         ]);
         if (active && current === request) {
-          setState({ profile, email: profile?.contactEmail ?? contact?.contactEmail ?? null,
+          setState({ profile,
             session, publicPermissions: visitor.permissions, status: "online" });
         }
       } catch {

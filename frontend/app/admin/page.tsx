@@ -1,4 +1,5 @@
 "use client";
+import ContactInbox from "./contact-inbox";
 
 import { useEffect, useRef, useState } from "react";
 import { api } from "@/lib/api";
@@ -286,6 +287,7 @@ export default function AdminPage() {
         </form>
       ) : loading ? <p className="notice" role="status">Loading your profile…</p> : (
         <>
+        <ContactInbox />
         <section className="admin-card admin-upload-card" aria-labelledby="photo-upload-heading">
           <div className="admin-section-heading"><div><p className="eyebrow">Private storage</p><h2 id="photo-upload-heading">Phone photo backup</h2></div></div>
           <p className="admin-intro">Choose photos or videos from this device. They’ll be copied to the photo folder on your Pi and won’t appear on the public homepage.</p>
