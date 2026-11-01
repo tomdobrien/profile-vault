@@ -341,16 +341,19 @@ button:disabled { opacity:.55; cursor:not-allowed; }
 
 /* Studio shell and project wall */
 @media screen {
-  :root { --font-display:var(--font-sans); --surface:#f3f5ef; --raised:#fff; --tonal:#e1eadf; --primary:#17623e; --primary-hover:#104b30; --accent:#247549; --ink:#15231b; --border:#c6d0c4; --muted:#526155; }
-  :root[data-theme="dark"] { --surface:#101a14; --raised:#1a291f; --ink:#f1f7ef; --primary:#99dbac; --primary-hover:#c1efcb; --accent:#8dcda0; --border:#394b3d; --muted:#b9cbbd; --tonal:#25392c; }
+  :root { --font-display:var(--font-sans); --surface:#f3f5ef; --raised:#fff; --tonal:#e1eadf; --primary:#205e41; --primary-hover:#104b30; --accent:#247549; --ink:#15231b; --border:#c6d0c4; --muted:#526155; }
+  :root[data-theme="dark"] { --surface:#121915; --raised:#1a241e; --ink:#edf2ec; --primary:#a8cfb7; --primary-hover:#c1efcb; --on-primary:#10281c; --accent:#8dcda0; --border:#3e5045; --muted:#b3c2b7; --tonal:#243129; }
   .personal-site { display:grid; grid-template-columns:clamp(165px,15vw,235px) minmax(0,1fr); grid-template-rows:1fr auto; padding:0; }
-  .site-header { grid-row:1/3; align-self:stretch; width:100%; margin:0; padding:32px 20px; flex-flow:column nowrap; align-items:stretch; justify-content:flex-start; background:#125837; color:white; border:none; }
+  .site-header { grid-row:1/3; align-self:stretch; width:100%; margin:0; padding:32px 20px; flex-flow:column nowrap; align-items:stretch; justify-content:flex-start; background:#24513b; color:white; border:none; }
   .site-wordmark,.site-wordmark svg,.site-navigation a,.site-navigation a:hover,.site-navigation a[aria-current="page"] { color:white; }
   .site-wordmark { font:800 22px/1.05 var(--font-sans); }
   .site-navigation { width:100%; margin:40px 0 0; flex-direction:column; align-items:stretch; gap:0; }
   .site-navigation a { padding:14px 0; border-top:1px solid #639678; }
   .site-navigation a[aria-current="page"]::after { background:white; width:28px; }
   .site-header .theme-toggle { align-self:flex-start; margin:18px 0; color:white; background:transparent; border-color:#a1d2ae; }
+  .site-header .theme-toggle:hover { background:#ffffff20; border-color:white; }
+  :root[data-theme="dark"] .site-header { background:#203d31; }
+  :root[data-theme="dark"] .site-navigation a { border-color:#658c70; }
   .site-header :focus-visible { outline-color:white; }
   .site-content,.site-footer { min-width:0; padding-inline:clamp(18px,4vw,68px); }
   .home-page { padding-top:clamp(28px,4vw,65px); }
@@ -359,7 +362,8 @@ button:disabled { opacity:.55; cursor:not-allowed; }
   .project-feature { display:grid; grid-template-columns:1fr; gap:0; position:relative; isolation:isolate; overflow:hidden; background:#112135; color:white; min-height:clamp(320px,35vw,490px); align-items:end; }
   .project-plate { position:absolute; inset:0; z-index:-1; }
   .project-plate img { height:100%; object-position:65% center; }
-  .project-plate::after { content:""; position:absolute; inset:0; background:linear-gradient(90deg,#081329ef,#08132988 48%,transparent),linear-gradient(0deg,#081329aa,transparent 70%); }
+  .project-plate::after { content:""; position:absolute; inset:0; background:linear-gradient(90deg,#0b1712ef,#0b171288 48%,transparent),linear-gradient(0deg,#0b1712aa,transparent 70%); }
+  :root[data-theme="dark"] .project-plate::after { background:linear-gradient(90deg,#0b1712f2,#0b171299 48%,transparent),linear-gradient(0deg,#0b1712bb,transparent 70%); }
   .project-plate figcaption { display:none; }
   .project-copy { padding:clamp(22px,3.5vw,54px); }
   .project-copy h2 { font:800 clamp(32px,4.8vw,72px)/1 var(--font-display); margin:0; letter-spacing:-.035em; }
@@ -368,6 +372,8 @@ button:disabled { opacity:.55; cursor:not-allowed; }
   .workshop-index { margin-top:32px; }
   .workshop-index h2,.contact-endnote h2,.index-row h3,.legal-page h1,.resume-page-intro h1,.private-entry h1,.admin-header h1 { font-weight:800; }
   .index-row { border-top:2px solid var(--ink); }
+  :root[data-theme="dark"] .index-row { border-top:1px solid var(--border); }
+  :root[data-theme="dark"] .project-copy .primary-button { background:#a8cfb7; color:#10281c; }
   @media(max-width:700px) {
     .personal-site { display:flex; }
     .site-header { display:grid; grid-template-columns:1fr auto; padding:16px 20px 0; gap:8px; }
