@@ -34,6 +34,16 @@ async function errorMessage(response: Response, fallback: string): Promise<strin
 }
 
 export const api = {
+  async getPublishedResume(signal: AbortSignal): Promise<Profile> {
+    const response = await fetch(`${apiBaseUrl}/api/published-resume`, { cache: "no-store", credentials: "omit", signal });
+    if (!response.ok) throw new Error("Resume unavailable");
+    return response.json();
+  },
+  async getPublicContact(signal: AbortSignal): Promise<{ contactEmail: string | null }> {
+    const response = await fetch(`${apiBaseUrl}/api/contact`, { cache: "no-store", credentials: "omit", signal });
+    if (!response.ok) throw new Error("Email unavailable");
+    return response.json();
+  },
   async getProfile(signal?: AbortSignal): Promise<Profile> {
     const response = await fetch(`${apiBaseUrl}/api/profile`, { cache: "no-store", credentials: "omit", headers: adminAuthorization(), signal });
     if (!response.ok) throw new Error(`Profile API returned ${response.status}`);

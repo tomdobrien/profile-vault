@@ -3,7 +3,12 @@
 import { usePublicProfile } from "./profile-context";
 
 export default function ResumeView() {
-  const { profile } = usePublicProfile();
+  const { profile, status } = usePublicProfile();
+  if (!profile?.displayName) return <main className="resume-page resume-wait">
+    <h1>Résumé</h1>
+    <p role="status">{status === "checking" ? "Checking the résumé server…" : status === "offline" ? "The résumé is offline. It will appear here when the server reconnects." : "The résumé is currently unavailable."}</p>
+    <a href={`${process.env.NEXT_PUBLIC_BASE_PATH ?? ""}/`}>Return home</a>
+  </main>;
   const skillsByCategory = profile.skills.reduce<Record<string, string[]>>((groups, skill) => {
     const category = skill.category?.trim() || "Additional skills";
     (groups[category] ??= []).push(skill.name);
@@ -12,19 +17,19 @@ export default function ResumeView() {
 
   return <main className="resume-page">
     <div className="resume-page-intro">
-      <p className="home-kicker">01 / Background</p>
-      <h1>{profile.displayName?.trim() ? `${profile.displayName.trim()} — resume` : "Resume"}</h1>
+      <h1>{profile.displayName} <span className="redaction" role="img" aria-label="Surname withheld">••••••</span></h1>
       {profile.headline && <p className="resume-page-headline">{profile.headline}</p>}
       {profile.introduction && <p className="resume-page-summary">{profile.introduction}</p>}
       <div className="resume-contact">
         {profile.location && <span>{profile.location}</span>}
         {profile.contactEmail && <a href={`mailto:${profile.contactEmail}`}>{profile.contactEmail}</a>}
+        <span>Phone <span className="redaction" role="img" aria-label="Phone number withheld">••• ••• ••••</span></span>
       </div>
     </div>
 
     <section className="resume-document" aria-labelledby="resume-document-title">
       <div className="resume-document-heading">
-        <div><p className="home-kicker">Career history</p><h2 id="resume-document-title">Selected experience</h2></div>
+        <h2 id="resume-document-title">Career history</h2>
         <button className="secondary-button print-resume" onClick={() => window.print()}>Print / save PDF <span aria-hidden="true">↗</span></button>
       </div>
       <div className="resume-grid">

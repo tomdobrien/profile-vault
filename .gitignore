@@ -26,3 +26,6 @@ Thumbs.db
 
 # TypeScript build cache
 *.tsbuildinfo
+
+# Personal resume served by the Pi only.
+data/published-resume.json

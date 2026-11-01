@@ -70,10 +70,13 @@ def is_valid_session(value: str | None) -> bool:
     return hmac.compare_digest(expected, supplied_signature)
 
 
+def has_admin_session(request: Request) -> bool:
+    return is_valid_session(_bearer_or_cookie(request))
+
+
 def require_admin(request: Request) -> None:
     ensure_auth_is_configured()
-    session_token = _bearer_or_cookie(request)
-    if not is_valid_session(session_token):
+    if not has_admin_session(request):
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Admin login required")
 
 

@@ -3,6 +3,7 @@ from pydantic_settings import BaseSettings, SettingsConfigDict
 class Settings(BaseSettings):
     app_env: str = "development"
     database_url: str = "sqlite:///./data/profile.db"
+    published_resume_path: str = "./data/published-resume.json"
     frontend_origin: str = "http://localhost:3000"
     admin_password: str | None = None
     admin_session_secret: str | None = None

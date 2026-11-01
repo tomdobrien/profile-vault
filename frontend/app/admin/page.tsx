@@ -165,7 +165,7 @@ export default function AdminPage() {
     setNotice("");
     try {
       setProfile(await api.updateProfile(profile));
-      setNotice("Saved to the server. Publish an updated public profile snapshot to show these changes on the intro and resume.");
+      setNotice("Saved to your private profile. The public résumé uses the separate published copy on your server.");
     } catch {
       setError("Could not save your changes. Check that the backend is running and try again.");
     } finally {
@@ -268,7 +268,6 @@ export default function AdminPage() {
     <main className="admin-shell">
       <header className="admin-header">
         <div>
-          <p className="eyebrow">Profile editor</p>
           <h1>Manage your profile</h1>
           <p className="admin-intro">Edit your profile, manage invitations and permissions, or send files to private Pi storage.</p>
         </div>
@@ -277,7 +276,6 @@ export default function AdminPage() {
 
       {authChecking ? <p className="notice" role="status">Checking admin access…</p> : !authenticated ? (
         <form className="admin-login-card" onSubmit={login}>
-          <p className="eyebrow">Private area</p>
           <h2>Admin sign in</h2>
           <p className="admin-intro">Enter your password to edit your profile or upload to private storage.</p>
           {authError && <p className="notice notice-error" role="alert">{authError}</p>}
@@ -310,7 +308,7 @@ export default function AdminPage() {
           {accountNotice && <p className="notice notice-success" role="status">{accountNotice}</p>}
           <div className="admin-entry">
             <h3>Public introduction and resume</h3>
-            <p className="field-hint">Your intro and resume are public, including a published copy that remains available when the server is offline. Refresh that copy when publishing resume updates. Only file backup requires an invited account.</p>
+            <p className="field-hint">The Pi serves a separate public résumé while connected. Your saved editor details stay private. Update the published résumé on the Pi to change what visitors see.</p>
           </div>
           <form className="admin-upload-form" onSubmit={inviteUploader}>
             <div className="admin-field-grid">

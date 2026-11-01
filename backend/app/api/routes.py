@@ -4,6 +4,7 @@ import hashlib
 import hmac
 import re
 import secrets
+from pathlib import Path
 from datetime import timedelta, timezone
 from urllib.parse import unquote
 from uuid import uuid4
@@ -19,6 +20,7 @@ from app.api.admin_auth import (
     create_session,
     create_upload_session,
     ensure_auth_is_configured,
+    has_admin_session,
     require_admin,
     require_frontend_origin,
     require_upload_access,
@@ -600,10 +602,30 @@ def health(db: Session = Depends(get_db)) -> dict[str, str]:
     except Exception as exc:
         raise HTTPException(status_code=503, detail={"status": "unhealthy", "database": "unavailable"}) from exc
 
-@router.get("/profile", response_model=ProfileResponse, response_model_by_alias=True, tags=["profile"])
-def get_profile(response: Response, db: Session = Depends(get_db)) -> ProfileResponse:
+@router.get("/published-resume", response_model=ProfileResponse, tags=["profile"])
+def published_resume(response: Response) -> ProfileResponse:
     response.headers["Cache-Control"] = "no-store"
-    return ProfileService(ProfileRepository(db)).get_profile()
+    try:
+        data = Path(settings.published_resume_path).read_bytes()
+    except FileNotFoundError:
+        return ProfileResponse()
+    profile = ProfileResponse.model_validate_json(data)
+    profile.display_name = next(iter((profile.display_name or "").split()), None)
+    profile.contact_phone = None
+    return profile
+
+
+@router.get("/contact", tags=["profile"])
+def public_contact(response: Response) -> dict[str, str | None]:
+    return {"contactEmail": published_resume(response).contact_email}
+
+
+@router.get("/profile", response_model=ProfileResponse, response_model_by_alias=True, tags=["profile"])
+def get_profile(request: Request, response: Response, db: Session = Depends(get_db)) -> ProfileResponse:
+    response.headers["Cache-Control"] = "no-store"
+    if has_admin_session(request):
+        return ProfileService(ProfileRepository(db)).get_profile()
+    return published_resume(response)
 
 @router.put("/profile", response_model=ProfileResponse, response_model_by_alias=True, tags=["profile"])
 def update_profile(

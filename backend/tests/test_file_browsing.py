@@ -378,6 +378,27 @@ def test_permission_changes_apply_to_existing_sessions_and_playback_tickets(back
         assert client.get("/api/profile", headers=tokens["alice"]).status_code == 200
 
 
+def test_published_resume_only_exposes_public_contact(backups, tmp_path, monkeypatch):
+    client, _, _, tokens, _ = backups
+    published = tmp_path / "resume.json"
+    monkeypatch.setattr(settings, "published_resume_path", str(published))
+    published.write_text(json.dumps({"displayName": "Test Surname", "contactPhone": "555-0100",
+                                     "contactEmail": "contact@example.com"}))
+    for path, headers in [("/api/published-resume", {}), ("/api/profile", {}), ("/api/profile", tokens["alice"])]:
+        response = client.get(path, headers=headers)
+        assert response.headers["cache-control"] == "no-store"
+        assert response.json()["displayName"] == "Test"
+        assert response.json()["contactPhone"] is None
+    assert client.get("/api/contact").json() == {"contactEmail": "contact@example.com"}
+    owner_headers = {**tokens["owner"], "Origin": "https://site.example"}
+    private = {"displayName": "Private Surname", "contactPhone": "555-0199"}
+    assert client.put("/api/profile", headers=owner_headers, json=private).status_code == 200
+    assert client.get("/api/profile", headers=tokens["owner"]).json()["contactPhone"] == private["contactPhone"]
+    published.unlink()
+    assert client.get("/api/contact").json() == {"contactEmail": None}
+    assert client.get("/api/profile").json()["displayName"] is None
+
+
 def test_only_admin_can_change_permissions_and_public_access(backups):
     client, _, _, tokens, _ = backups
     for headers in ({"Origin": "https://site.example"}, {**tokens["alice"], "Origin": "https://site.example"}):

@@ -51,10 +51,9 @@ export default function InvitePage() {
     }
   }
 
-  return <SiteChrome active="upload">
+  return <SiteChrome>
     <main className="invite-page">
       <div className="invite-page-heading">
-        <p className="home-kicker">Site invitation</p>
         <h1>Set up your account</h1>
         <p>Create a password to access the features shared with you.</p>
       </div>

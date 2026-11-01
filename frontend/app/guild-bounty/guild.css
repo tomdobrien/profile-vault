@@ -49,5 +49,18 @@
 @media(max-width:500px){.gb-intro{min-height:320px;padding:28px 22px}.gb-intro h1{font-size:34px}.gb-intro .intro-buttons>*{flex:1 1 150px}.spotlight-item.spotlight-feature{grid-template-columns:94px minmax(0,1fr);min-height:190px}.spotlight-feature>img{min-height:190px}.spotlight-content{padding:15px}.spotlight-content>strong{font-size:17px}.popular-game img{width:54px;height:72px}.popular-game{font-size:13px}.popular-game-grid{gap:14px 8px}}
 /* The guild hall is the environment behind discovery, not a boxed banner. */
 .guild{background-color:#10141e;background-image:linear-gradient(90deg,rgba(10,15,25,.93),rgba(10,15,25,.64) 48%,rgba(10,15,25,.44)),linear-gradient(0deg,#10141e 0%,transparent 75%),var(--guild-scene);background-position:center top;background-size:cover;background-attachment:fixed}
-.gb-header{background:#101923eF}.gb-main{position:relative}.gb-intro{min-height:230px;background:none!important;border:0;padding:48px 0 32px;display:flex}.gb-intro h1{font:700 clamp(32px,3vw,44px)/1.15 Georgia,serif;letter-spacing:-.02em}.gb-intro p:not(.intro-label){max-width:50ch;margin-top:12px}.intro-buttons{margin-top:20px}.spotlight{padding-top:16px}.spotlight-item.spotlight-feature{background:#182231eF}.boosted-grid{background:#182231d9}.boosted-item{padding-left:14px}.popular-game{background:#182231d9;padding:8px}.guild-light{background-color:#81909b;background-image:linear-gradient(90deg,rgba(92,108,118,.84),rgba(77,93,105,.7)),var(--guild-scene);background-position:center top;background-size:cover;background-attachment:fixed}.guild-light .gb-intro h1,.guild-light .gb-intro p:not(.intro-label){color:#fff}.guild-light .popular-game{color:#f4f1e9}.guild-light .popular-game small{color:#b2bec9}
+.gb-header{background:#101923eF}.gb-main{position:relative}.gb-intro{min-height:230px;background:none;border:0;padding:48px 0 32px;display:flex}.gb-intro h1{font:700 clamp(32px,3vw,44px)/1.15 Georgia,serif;letter-spacing:-.02em}.gb-intro p:not(.intro-label){max-width:50ch;margin-top:12px}.intro-buttons{margin-top:20px}.spotlight{padding-top:16px}.spotlight-item.spotlight-feature{background:#182231eF}.boosted-grid{background:#182231d9}.boosted-item{padding-left:14px}.popular-game{background:#182231d9;padding:8px}.guild-light{background:#a9b7bf}.guild-light .gb-intro h1,.guild-light .gb-intro p:not(.intro-label){color:#fff}.guild-light .popular-game{color:#f4f1e9}.guild-light .popular-game small{color:#b2bec9}
 @media(max-width:800px){.guild,.guild-light{background-attachment:scroll;background-size:auto 100vh;background-repeat:no-repeat;background-position:65% top}.gb-intro{min-height:220px;padding:36px 0 25px}.gb-intro h1{font-size:34px}}
+
+.guild :focus-visible { outline:3px solid var(--gold); outline-offset:3px; }
+.gb-header .theme-btn,.gb-header .signin { min-height:44px; }
+.gb-header .theme-btn { min-width:44px; }
+.gb-intro h1 { text-wrap:balance; font-size:clamp(36px,4vw,58px); }
+.demo-strip { border-bottom:1px solid var(--line); }
+.gb-main .row-reward strong,.gb-main .row-players strong { font-variant-numeric:tabular-nums; }
+.guild-light .gb-intro { padding:clamp(22px,3vw,42px); background:linear-gradient(90deg,#101923eb,#10192380),var(--guild-scene) center/cover; }
+@media(max-width:800px) {
+  .gb-header nav { min-height:44px; }
+  .gb-header nav button { min-height:44px; flex:1; }
+  .gb-intro { min-height:0; padding-block:32px; }
+}

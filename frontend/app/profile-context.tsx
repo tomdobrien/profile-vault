@@ -1,40 +1,33 @@
 "use client";
 
 import { createContext, useContext, useEffect, useState } from "react";
+import { usePathname } from "next/navigation";
 import { api } from "@/lib/api";
 import type { Profile, SiteSession } from "@/lib/types";
 
-import { publicProfile } from "@/lib/public-profile";
-
 type PublicProfileState = {
-  profile: Profile;
-  loading: boolean;
-  error: string | null;
+  profile: Profile | null;
+  email: string | null;
   status: "checking" | "online" | "offline";
   session: SiteSession | null;
   publicPermissions: string[];
-  can: (permission: string) => boolean;
+};
+const initial: PublicProfileState = {
+  profile: null, email: null, status: "checking", session: null, publicPermissions: [],
 };
 
-export const PublicProfileContext = createContext<PublicProfileState>({
-  profile: publicProfile,
-  loading: false,
-  error: null,
-  status: "checking",
-  session: null,
-  publicPermissions: [],
-  can: () => false,
-});
+const PublicProfileContext = createContext({ ...initial, can: (_permission: string): boolean => false });
 
 export function PublicProfileProvider({ children }: Readonly<{ children: React.ReactNode }>) {
-  const [state, setState] = useState<Omit<PublicProfileState, "can">>({
-    profile: publicProfile, loading: false, error: null, status: "checking", session: null, publicPermissions: [],
-  });
+  const [state, setState] = useState(initial);
   const [revision, setRevision] = useState(0);
+  const pathname = usePathname();
+  const basePath = process.env.NEXT_PUBLIC_BASE_PATH ?? "";
+  const route = (basePath && pathname.startsWith(basePath + "/") ? pathname.slice(basePath.length) : pathname).replace(/\/$/, "") || "/";
 
   useEffect(() => {
     const changed = () => {
-      setState({ profile: publicProfile, loading: false, error: null, status: "checking", session: null, publicPermissions: [] });
+      setState(initial);
       setRevision((value) => value + 1);
     };
     window.addEventListener("profile-session-change", changed);
@@ -43,62 +36,67 @@ export function PublicProfileProvider({ children }: Readonly<{ children: React.R
 
   useEffect(() => {
     let active = true;
-    let inFlight = false;
-    let controller: AbortController | null = null;
-
-    function markOffline() {
-      if (active) setState({ profile: publicProfile, session: null, publicPermissions: [], loading: false, error: "The server is currently unavailable.", status: "offline" });
-    }
-
-    async function checkServer() {
-      if (!active || inFlight) return;
-      if (!navigator.onLine) { markOffline(); return; }
-      inFlight = true;
-      const request = new AbortController();
-      controller = request;
-      const timeout = window.setTimeout(() => request.abort(), 5000);
-      try {
-        const [visitor, session] = await Promise.all([api.getPublicAccess(request.signal), api.getSiteSession(request.signal)]);
-        const profile = publicProfile;
-        if (active) setState({ profile, session, publicPermissions: visitor.permissions, loading: false, error: null, status: "online" });
-      } catch {
-        markOffline();
-      } finally {
-        window.clearTimeout(timeout);
-        inFlight = false;
-      }
-    }
-
-    function checkVisiblePage() {
-      if (document.visibilityState === "visible") void checkServer();
+    let current: AbortController | null = null;
+    function clearPersonalData() {
+      current?.abort();
+      current = null;
+      setState(previous => ({ ...previous, profile: null, email: null }));
     }
     function networkOffline() {
-      controller?.abort();
-      markOffline();
+      clearPersonalData();
+      setState({ ...initial, status: "offline" });
     }
-
+    async function checkServer() {
+      if (document.visibilityState === "hidden" || current) return;
+      if (!navigator.onLine) { networkOffline(); return; }
+      const request = new AbortController();
+      current = request;
+      const timeout = window.setTimeout(() => request.abort(), 5000);
+      try {
+        const [visitor, session, profile, contact] = await Promise.all([
+          api.getPublicAccess(request.signal), api.getSiteSession(request.signal),
+          route === "/resume" ? api.getPublishedResume(request.signal).catch(() => null) : null,
+          route === "/" || route === "/terms" ? api.getPublicContact(request.signal).catch(() => null) : null,
+        ]);
+        if (active && current === request) {
+          setState({ profile, email: profile?.contactEmail ?? contact?.contactEmail ?? null,
+            session, publicPermissions: visitor.permissions, status: "online" });
+        }
+      } catch {
+        if (active && current === request) setState({ ...initial, status: "offline" });
+      } finally {
+        window.clearTimeout(timeout);
+        if (current === request) current = null;
+      }
+    }
+    function visibilityChanged() {
+      if (document.visibilityState === "hidden") clearPersonalData();
+      else void checkServer();
+    }
     void checkServer();
-    const interval = window.setInterval(checkVisiblePage, 30_000);
-    window.addEventListener("online", checkVisiblePage);
+    const interval = window.setInterval(checkServer, 30_000);
+    window.addEventListener("online", checkServer);
     window.addEventListener("offline", networkOffline);
-    window.addEventListener("focus", checkVisiblePage);
-    document.addEventListener("visibilitychange", checkVisiblePage);
+    window.addEventListener("focus", checkServer);
+    window.addEventListener("pagehide", clearPersonalData);
+    window.addEventListener("pageshow", checkServer);
+    document.addEventListener("visibilitychange", visibilityChanged);
     return () => {
       active = false;
-      controller?.abort();
+      current?.abort();
       window.clearInterval(interval);
-      window.removeEventListener("online", checkVisiblePage);
+      window.removeEventListener("online", checkServer);
       window.removeEventListener("offline", networkOffline);
-      window.removeEventListener("focus", checkVisiblePage);
-      document.removeEventListener("visibilitychange", checkVisiblePage);
+      window.removeEventListener("focus", checkServer);
+      window.removeEventListener("pagehide", clearPersonalData);
+      window.removeEventListener("pageshow", checkServer);
+      document.removeEventListener("visibilitychange", visibilityChanged);
     };
-  }, [revision]);
+  }, [route, revision]);
 
   const can = (permission: string) => state.status === "online" && Boolean(
     state.session?.isAdmin || state.session?.permissions.includes(permission) || state.publicPermissions.includes(permission));
   return <PublicProfileContext.Provider value={{ ...state, can }}>{children}</PublicProfileContext.Provider>;
 }
 
-export function usePublicProfile(): PublicProfileState {
-  return useContext(PublicProfileContext);
-}
+export function usePublicProfile() { return useContext(PublicProfileContext); }
